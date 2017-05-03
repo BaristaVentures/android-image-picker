@@ -1,4 +1,4 @@
-package image_picker
+package com.barista_v.image_picker
 
 import android.Manifest.permission.READ_EXTERNAL_STORAGE
 import android.Manifest.permission.WRITE_EXTERNAL_STORAGE
@@ -11,7 +11,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
-import image_picker.extensions.saveInFile
+import com.barista_v.image_picker.extensions.saveInFile
 import rx.Observable
 import rx.subjects.BehaviorSubject
 import java.io.File

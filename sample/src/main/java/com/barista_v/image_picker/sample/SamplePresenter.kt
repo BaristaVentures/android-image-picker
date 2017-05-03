@@ -1,9 +1,9 @@
-package image_picker.sample
+package com.barista_v.image_picker.sample
 
-import image_picker.ActivityResult
-import image_picker.AndroidImageManager
-import image_picker.sample.utils.ReportState
-import image_picker.sample.utils.extensions.nowString
+import com.barista_v.image_picker.ActivityResult
+import com.barista_v.image_picker.AndroidImageManager
+import com.barista_v.image_picker.sample.utils.ReportState
+import com.barista_v.image_picker.sample.utils.extensions.nowString
 import java.io.File
 
 class SamplePresenter {

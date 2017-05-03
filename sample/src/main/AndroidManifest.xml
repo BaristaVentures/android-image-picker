@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="image_picker.sample">
+  package="com.barista_v.image_picker.sample">
 
   <uses-permission android:name="android.permission.INTERNET" />
 

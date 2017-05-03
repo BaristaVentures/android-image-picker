@@ -1,4 +1,4 @@
-package image_picker.sample.utils
+package com.barista_v.image_picker.sample.utils
 
 import android.os.Bundle
 

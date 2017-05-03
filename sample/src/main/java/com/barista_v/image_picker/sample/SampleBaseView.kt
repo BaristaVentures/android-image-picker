@@ -1,4 +1,4 @@
-package image_picker.sample
+package com.barista_v.image_picker.sample
 
 import java.io.File
 

@@ -1,4 +1,4 @@
-package image_picker.sample.utils.extensions
+package com.barista_v.image_picker.sample.utils.extensions
 
 import java.text.SimpleDateFormat
 import java.util.*

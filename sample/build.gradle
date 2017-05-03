@@ -7,7 +7,7 @@ android {
   buildToolsVersion setup.buildTools
 
   defaultConfig {
-    applicationId "image_picker.sample"
+    applicationId "com.barista_v.image_picker.sample"
 
     minSdkVersion setup.minSdk
     targetSdkVersion setup.targetSdk

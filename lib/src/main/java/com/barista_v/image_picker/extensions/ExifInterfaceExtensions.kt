@@ -1,4 +1,4 @@
-package image_picker.extensions
+package com.barista_v.image_picker.extensions
 
 import android.support.media.ExifInterface
 import android.support.media.ExifInterface.ORIENTATION_UNDEFINED

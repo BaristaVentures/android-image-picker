@@ -1,11 +1,11 @@
-package image_picker
+package com.barista_v.image_picker
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Matrix
 import android.support.media.ExifInterface
 import android.util.Log
-import image_picker.extensions.orientation
+import com.barista_v.image_picker.extensions.orientation
 
 /**
  * Image stored inside internal storage.

@@ -1,4 +1,4 @@
-package image_picker.sample
+package com.barista_v.image_picker.sample
 
 import android.content.Intent
 import android.graphics.BitmapFactory
@@ -6,9 +6,9 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
-import image_picker.ActivityResult
-import image_picker.AndroidImageManager
-import image_picker.sample.utils.ReportState
+import com.barista_v.image_picker.ActivityResult
+import com.barista_v.image_picker.AndroidImageManager
+import com.barista_v.image_picker.sample.utils.ReportState
 import kotlinx.android.synthetic.main.activity_sample.*
 import java.io.File
 

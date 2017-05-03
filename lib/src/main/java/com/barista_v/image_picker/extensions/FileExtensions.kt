@@ -1,4 +1,4 @@
-package image_picker.extensions
+package com.barista_v.image_picker.extensions
 
 import java.io.File
 

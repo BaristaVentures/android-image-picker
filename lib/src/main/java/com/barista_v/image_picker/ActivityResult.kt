@@ -1,4 +1,4 @@
-package image_picker
+package com.barista_v.image_picker
 
 import android.content.Intent
 

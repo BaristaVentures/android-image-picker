@@ -1,3 +1,3 @@
 # Android Image Picker
 
-Ask for gallary/camera images "easy"
+Ask for gallery/camera images "easy"
