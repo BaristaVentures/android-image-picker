@@ -1,0 +1,47 @@
+buildscript {
+
+  ext.setup = [targetSdk : 25,
+               minSdk    : 16,
+               buildTools: "25.0.2"]
+
+  ext.versions = [kotlin    : "1.1.2-2",
+                  supportLib: "25.3.1",
+                  rxJava    : "1.2.9",
+                  rxBinding : "0.4.0"]
+
+  ext.deps = [supportAppCompat    : "com.android.support:appcompat-v7:${ext.versions.supportLib}",
+              supportExifInterface: "com.android.support:exifinterface:${ext.versions.supportLib}",
+
+              kotlinStdLib        : "org.jetbrains.kotlin:kotlin-stdlib:${ext.versions.kotlin}",
+
+              rxJava              : "io.reactivex:rxjava:$ext.versions.rxJava",
+              rxAndroid           : "io.reactivex:rxandroid:1.2.1",
+              rxKotlin            : "io.reactivex:rxkotlin:1.0.0",
+              rxProguard          : "com.artemzin.rxjava:proguard-rules:$ext.versions.rxJava.0@aar"]
+
+  repositories {
+    mavenCentral()
+    jcenter() // gradle-versions-plugin
+  }
+
+  dependencies {
+    classpath 'com.android.tools.build:gradle:2.3.1'
+
+    classpath 'com.github.ben-manes:gradle-versions-plugin:0.13.0'
+
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
+    classpath "org.jetbrains.kotlin:kotlin-android-extensions:$versions.kotlin"
+  }
+}
+
+allprojects {
+  repositories {
+    maven { url 'https://maven.fabric.io/public' } // twitter
+    mavenCentral()
+    jcenter() // gradle-versions-plugin
+  }
+}
+
+task clean(type: Delete) {
+  delete rootProject.buildDir
+}

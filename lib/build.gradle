@@ -1,0 +1,26 @@
+apply plugin: 'com.android.library'
+apply plugin: 'kotlin-android'
+apply plugin: 'com.github.ben-manes.versions'
+
+android {
+  compileSdkVersion setup.targetSdk
+  buildToolsVersion setup.buildTools
+
+  defaultConfig {
+    minSdkVersion setup.minSdk
+    targetSdkVersion setup.targetSdk
+    versionCode 1
+    versionName "1.0"
+  }
+}
+
+dependencies {
+  compile deps.kotlinStdLib
+  compile deps.supportAppCompat
+  compile deps.supportExifInterface
+
+  compile deps.rxJava
+  compile deps.rxAndroid
+  compile deps.rxKotlin
+  compile deps.rxProguard
+}
