@@ -59,17 +59,22 @@ class InternalImage(var path: String?, var orientation: Int = -1) {
     options.inJustDecodeBounds = true
     BitmapFactory.decodeFile(path, options)
 
-    var newSampleSize = 1;
+    var newSampleSize = 1
+    val imageWasDecoded = options.outHeight != -1 && options.outWidth != -1
+    val newSizeIsSmaller = (height > options.outHeight || width > options.outWidth)
 
-    if (height > options.outWidth || width > options.outWidth) {
-      val halfHeight = height / 2;
-      val halfWidth = width / 2;
+    if (imageWasDecoded && newSizeIsSmaller) {
+      val halfHeight = height / 2
+      val halfWidth = width / 2
 
       // Calculate the largest inSampleSize value that is a power of 2 and keeps both
       // height and width larger than the requested height and width.
-      while ((halfHeight / newSampleSize) > options.outHeight &&
-          (halfWidth / newSampleSize) > options.outWidth) {
-        newSampleSize *= 2;
+      // Optimized with >= instead of > based on http://stackoverflow.com/a/28927163/273119
+      while ((halfHeight / newSampleSize) >= options.outHeight &&
+          (halfWidth / newSampleSize) >= options.outWidth) {
+        if (newSampleSize * 2 > 0) {
+          newSampleSize *= 2
+        }
       }
     }
 
