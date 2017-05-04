@@ -14,6 +14,7 @@ import android.support.v4.content.FileProvider
 import com.barista_v.image_picker.extensions.saveInFile
 import rx.Observable
 import rx.subjects.BehaviorSubject
+import rx.subjects.Subject
 import java.io.File
 import java.lang.ref.WeakReference
 
@@ -24,17 +25,17 @@ import java.lang.ref.WeakReference
  */
 open class AndroidImageManager(activity: Activity, val applicationPackage: String) {
   private var weakActivity = WeakReference(activity)
+  private val permissionOwner = PermissionOwner(activity)
   private val storageDir: File? by lazy {
     activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
   }
 
-  val isExternalStorageWritable: Boolean
+  private val isExternalStorageWritable: Boolean
     get() = Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()
 
-  val results = BehaviorSubject.create<String>()
+  var results: Subject<String, String> = BehaviorSubject.create<String>()
   var format = Bitmap.CompressFormat.JPEG
   var quality = 80
-  val permissionOwner = PermissionOwner(activity)
 
   /**
    * From SDK 18 (kitkat) you dont need to ask user permissions for
@@ -120,7 +121,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
 
         bitmap?.saveInFile(destinationFile, format, quality)?.let {
           results.onNext(it.absolutePath)
-          results.onCompleted()
+          completeResults()
 
           activity.revokeUriPermission(imageUri,
               Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -128,8 +129,17 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
 
       } catch (e: Exception) {
         results.onError(e)
+        completeResults()
       }
-    } ?: results.onCompleted()
+    } ?: completeResults()
+  }
+
+  /**
+   * Complete and init the observer so it can handle more items.
+   */
+  private fun completeResults() {
+    results.onCompleted()
+    results = BehaviorSubject.create<String>()
   }
 
   /**
