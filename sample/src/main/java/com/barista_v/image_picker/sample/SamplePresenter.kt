@@ -5,7 +5,6 @@ import com.barista_v.image_picker.AndroidImageManager
 import com.barista_v.image_picker.sample.utils.ReportState
 import com.barista_v.image_picker.sample.utils.extensions.nowString
 import rx.Observable
-import java.io.File
 
 class SamplePresenter {
   val requestCodeCameraPermissions = 1
@@ -44,7 +43,7 @@ class SamplePresenter {
     state?.thumbFileName = java.util.Calendar.getInstance().nowString()
 
     if (mAndroidImageManager?.isPermissionGranted() == true ||
-        mAndroidImageManager?.shouldAskForCameraPermissions == false) {
+        mAndroidImageManager?.isCameraPermissionsNeeded == false) {
       sendImageFromCamera()
     } else if (mAndroidImageManager?.shouldShowPermissionRationale() ?: false) {
       view?.showImagePermissionRationale(requestCodeCameraPermissions)

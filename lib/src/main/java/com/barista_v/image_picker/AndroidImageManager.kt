@@ -41,8 +41,8 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
    * From SDK 18 (kitkat) you dont need to ask user permissions for
    * #android.Manifest.permission.WRITE_EXTERNAL_STORAGE
    */
-  val shouldAskForCameraPermissions: Boolean
-    get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT
+  val isCameraPermissionsNeeded: Boolean
+    get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT
 
   /**
    * Added camera permission because it creates a conflict if the app have camera permission
