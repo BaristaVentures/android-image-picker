@@ -31,7 +31,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
   val isExternalStorageWritable: Boolean
     get() = Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()
 
-  val results = BehaviorSubject.create<File>()
+  val results = BehaviorSubject.create<String>()
   var format = Bitmap.CompressFormat.JPEG
   var quality = 80
   val permissionOwner = PermissionOwner(activity)
@@ -56,7 +56,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
    * Use #shouldAskForCameraPermissions to check if this method really needs a permission or not
    */
   //  @RequiresPermission(WRITE_EXTERNAL_STORAGE)
-  open fun requestImageFromCamera(resultImageName: String, requestCode: Int): Observable<File> {
+  open fun requestImageFromCamera(resultImageName: String, requestCode: Int): Observable<String> {
     if (isExternalStorageWritable) {
       weakActivity.get()?.let {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -81,7 +81,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
   }
 
   //  @RequiresPermission(allOf = arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE))
-  fun requestImageFromGallery(requestCode: Int): Observable<File> {
+  fun requestImageFromGallery(requestCode: Int): Observable<String> {
     if (isExternalStorageWritable) {
       val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
       weakActivity.get()?.startActivityForResult(intent, requestCode)
@@ -114,7 +114,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
         val bitmap = sourceImage.resizeRotatedBitmap(width, height)
 
         bitmap?.saveInFile(destinationFile, format, quality)?.let {
-          results.onNext(it)
+          results.onNext(it.absolutePath)
           results.onCompleted()
 
           activity.revokeUriPermission(imageUri,
@@ -130,7 +130,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
   /**
    * Find the shareable Uri for an image with name.
    */
-  fun getCameraImageUri(context: Context, imageName: String): Uri {
+  private fun getCameraImageUri(context: Context, imageName: String): Uri {
     val cameraFile = createCameraFile("$imageName.${format.name}")
 
     return FileProvider.getUriForFile(context, "$applicationPackage.provider", cameraFile)

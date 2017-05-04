@@ -4,6 +4,7 @@ import com.barista_v.image_picker.ActivityResult
 import com.barista_v.image_picker.AndroidImageManager
 import com.barista_v.image_picker.sample.utils.ReportState
 import com.barista_v.image_picker.sample.utils.extensions.nowString
+import rx.Observable
 import java.io.File
 
 class SamplePresenter {
@@ -68,7 +69,7 @@ class SamplePresenter {
     }
   }
 
-  private fun doSomething(imageObservable: rx.Observable<File>?) {
+  private fun doSomething(imageObservable: Observable<String>?) {
     state?.userIsPickingImage = true
 
     imageObservable?.subscribeOn(rx.schedulers.Schedulers.io())

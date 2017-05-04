@@ -10,7 +10,6 @@ import com.barista_v.image_picker.ActivityResult
 import com.barista_v.image_picker.AndroidImageManager
 import com.barista_v.image_picker.sample.utils.ReportState
 import kotlinx.android.synthetic.main.activity_sample.*
-import java.io.File
 
 
 class SampleActivity : AppCompatActivity(), SampleBaseView {
@@ -50,8 +49,8 @@ class SampleActivity : AppCompatActivity(), SampleBaseView {
         .show()
   }
 
-  override fun showImage(file: File) {
-    resultImage.background = BitmapDrawable(resources, BitmapFactory.decodeFile(file.path))
+  override fun showImage(path: String) {
+    resultImage.background = BitmapDrawable(resources, BitmapFactory.decodeFile(path))
   }
 
 }
