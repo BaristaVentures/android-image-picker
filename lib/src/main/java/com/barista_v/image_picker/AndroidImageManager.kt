@@ -78,6 +78,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
       }
     } else {
       results.onError(Throwable("External storage is not available at the moment."))
+      completeResults()
     }
 
     return results.asObservable()
@@ -108,6 +109,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
   open fun handleOnActivityResult(result: ActivityResult, imageName: String, width: Int, height: Int) {
     if (!isExternalStorageWritable) {
       results.onError(Throwable("External storage is not available at the moment."))
+      completeResults()
       return
     }
 
@@ -117,16 +119,20 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
         val sourceImage = readImageFileFromGallery(result.data) ?: readImageFileFromCamera(imageUri)
 
         val destinationFile = createInternalFile("$imageName.${format.name}")
-        val bitmap = sourceImage.resizeRotatedBitmap(width, height)
 
+        val bitmap = sourceImage.resizeRotatedBitmap(width, height)
         bitmap?.saveInFile(destinationFile, format, quality)?.let {
           results.onNext(it.absolutePath)
           completeResults()
 
           activity.revokeUriPermission(imageUri,
               Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        } ?: results.onError(Throwable("Image  $imageName.${format.name} could not be saved, check app permissions."))
+        }
 
+        if (bitmap == null) {
+          results.onError(Throwable("Image  $imageName.${format.name} could not be saved."))
+          completeResults()
+        }
       } catch (e: Exception) {
         results.onError(e)
         completeResults()
