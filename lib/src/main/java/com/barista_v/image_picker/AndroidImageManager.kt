@@ -54,6 +54,8 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
 
   /**
    * Use #shouldAskForCameraPermissions to check if this method really needs a permission or not
+   *
+   * @return Observable with the result file path
    */
   //  @RequiresPermission(WRITE_EXTERNAL_STORAGE)
   open fun requestImageFromCamera(resultImageName: String, requestCode: Int): Observable<String> {
@@ -81,6 +83,9 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
   }
 
   //  @RequiresPermission(allOf = arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE))
+  /**
+   * @return Observable with the result file path
+   */
   fun requestImageFromGallery(requestCode: Int): Observable<String> {
     if (isExternalStorageWritable) {
       val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
