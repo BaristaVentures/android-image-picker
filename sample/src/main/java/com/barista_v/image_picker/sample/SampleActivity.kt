@@ -2,7 +2,6 @@ package com.barista_v.image_picker.sample
 
 import android.content.Intent
 import android.graphics.BitmapFactory
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.Toast
@@ -50,7 +49,7 @@ class SampleActivity : AppCompatActivity(), SampleBaseView {
   }
 
   override fun showImage(path: String) {
-    resultImage.background = BitmapDrawable(resources, BitmapFactory.decodeFile(path))
+    resultImage.setImageBitmap(BitmapFactory.decodeFile(path))
   }
 
 }

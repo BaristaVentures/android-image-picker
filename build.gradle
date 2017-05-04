@@ -1,7 +1,7 @@
 buildscript {
 
   ext.setup = [targetSdk : 25,
-               minSdk    : 16,
+               minSdk    : 15,
                buildTools: "25.0.2"]
 
   ext.versions = [kotlin    : "1.1.2-2",
