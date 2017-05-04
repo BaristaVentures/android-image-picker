@@ -14,6 +14,7 @@ import android.support.v4.content.FileProvider
 import com.barista_v.image_picker.extensions.saveInFile
 import rx.Observable
 import rx.subjects.BehaviorSubject
+import rx.subjects.Subject
 import java.io.File
 import java.lang.ref.WeakReference
 
@@ -24,17 +25,17 @@ import java.lang.ref.WeakReference
  */
 open class AndroidImageManager(activity: Activity, val applicationPackage: String) {
   private var weakActivity = WeakReference(activity)
+  private val permissionOwner = PermissionOwner(activity)
   private val storageDir: File? by lazy {
     activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
   }
 
-  val isExternalStorageWritable: Boolean
+  private val isExternalStorageWritable: Boolean
     get() = Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()
 
-  val results = BehaviorSubject.create<File>()
+  var results: Subject<String, String> = BehaviorSubject.create<String>()
   var format = Bitmap.CompressFormat.JPEG
   var quality = 80
-  val permissionOwner = PermissionOwner(activity)
 
   /**
    * From SDK 18 (kitkat) you dont need to ask user permissions for
@@ -54,9 +55,11 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
 
   /**
    * Use #shouldAskForCameraPermissions to check if this method really needs a permission or not
+   *
+   * @return Observable with the result file path
    */
   //  @RequiresPermission(WRITE_EXTERNAL_STORAGE)
-  open fun requestImageFromCamera(resultImageName: String, requestCode: Int): Observable<File> {
+  open fun requestImageFromCamera(resultImageName: String, requestCode: Int): Observable<String> {
     if (isExternalStorageWritable) {
       weakActivity.get()?.let {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
@@ -75,13 +78,17 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
       }
     } else {
       results.onError(Throwable("External storage is not available at the moment."))
+      completeResults()
     }
 
     return results.asObservable()
   }
 
   //  @RequiresPermission(allOf = arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE))
-  fun requestImageFromGallery(requestCode: Int): Observable<File> {
+  /**
+   * @return Observable with the result file path
+   */
+  fun requestImageFromGallery(requestCode: Int): Observable<String> {
     if (isExternalStorageWritable) {
       val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
       weakActivity.get()?.startActivityForResult(intent, requestCode)
@@ -102,6 +109,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
   open fun handleOnActivityResult(result: ActivityResult, imageName: String, width: Int, height: Int) {
     if (!isExternalStorageWritable) {
       results.onError(Throwable("External storage is not available at the moment."))
+      completeResults()
       return
     }
 
@@ -111,26 +119,39 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
         val sourceImage = readImageFileFromGallery(result.data) ?: readImageFileFromCamera(imageUri)
 
         val destinationFile = createInternalFile("$imageName.${format.name}")
-        val bitmap = sourceImage.resizeRotatedBitmap(width, height)
 
+        val bitmap = sourceImage.resizeRotatedBitmap(width, height)
         bitmap?.saveInFile(destinationFile, format, quality)?.let {
-          results.onNext(it)
-          results.onCompleted()
+          results.onNext(it.absolutePath)
+          completeResults()
 
           activity.revokeUriPermission(imageUri,
               Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        } ?: results.onError(Throwable("Image  $imageName.${format.name} could not be saved, check app permissions."))
+        }
 
+        if (bitmap == null) {
+          results.onError(Throwable("Image  $imageName.${format.name} could not be saved."))
+          completeResults()
+        }
       } catch (e: Exception) {
         results.onError(e)
+        completeResults()
       }
-    } ?: results.onCompleted()
+    } ?: completeResults()
+  }
+
+  /**
+   * Complete and init the observer so it can handle more items.
+   */
+  private fun completeResults() {
+    results.onCompleted()
+    results = BehaviorSubject.create<String>()
   }
 
   /**
    * Find the shareable Uri for an image with name.
    */
-  fun getCameraImageUri(context: Context, imageName: String): Uri {
+  private fun getCameraImageUri(context: Context, imageName: String): Uri {
     val cameraFile = createCameraFile("$imageName.${format.name}")
 
     return FileProvider.getUriForFile(context, "$applicationPackage.provider", cameraFile)
