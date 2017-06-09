@@ -44,7 +44,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
   val isCameraPermissionsNeeded: Boolean
     get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT
 
-  /**
+  /**q
    * Added camera permission because it creates a conflict if the app have camera permission
    * even if its in other place of the app.
    *

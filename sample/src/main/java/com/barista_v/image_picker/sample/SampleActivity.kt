@@ -4,52 +4,110 @@ import android.content.Intent
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import android.util.Log
 import android.widget.Toast
 import com.barista_v.image_picker.ActivityResult
 import com.barista_v.image_picker.AndroidImageManager
-import com.barista_v.image_picker.sample.utils.ReportState
+import com.barista_v.image_picker.sample.utils.State
+import com.barista_v.image_picker.sample.utils.extensions.nowString
 import kotlinx.android.synthetic.main.activity_sample.*
+import rx.Observable
 
+/**
+ * 1. Its important to save some variables on [AppCompatActivity.onRestoreInstanceState]
+ *
+ */
+class SampleActivity : AppCompatActivity() {
+  val requestCodeCameraPermissions = 1
+  val requestCodeGalleryPermissions = 2
+  val requestCodeCameraPhoto = 3
+  val requestCodeGalleryPhoto = 4
 
-class SampleActivity : AppCompatActivity(), SampleBaseView {
-  val presenter = SamplePresenter()
-  var presenterState: ReportState? = null
+  var androidImageManager: AndroidImageManager? = null
+
+  var state: State? = null
+
+  val currentDate: String get() = java.util.Calendar.getInstance().nowString()
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     setContentView(R.layout.activity_sample)
 
-    val newState = ReportState(savedInstanceState)
-    presenter.attach(this, AndroidImageManager(this, BuildConfig.APPLICATION_ID), newState)
-    presenterState = newState
+    androidImageManager = AndroidImageManager(this, BuildConfig.APPLICATION_ID)
+    state = State(savedInstanceState)
 
-    // Using kotlin extensions...
-    cameraButton.setOnClickListener { presenter.onCameraButtonClick() }
-    galleryButton.setOnClickListener { presenter.onGalleryButtonClick() }
+    cameraButton.setOnClickListener { onCameraClick() }
+    galleryButton.setOnClickListener { onGalleryClick() }
+
+    if (state?.userIsPickingImage == true) {
+      // If this activity was recreated we need to start
+      // observing the change again.
+      handleObservable(androidImageManager?.results)
+    }
+  }
+
+  fun onGalleryClick() {
+    state?.thumbFileName = currentDate
+
+    if (androidImageManager?.isPermissionGranted() == true) {
+      state?.userIsPickingImage = true
+      handleObservable(androidImageManager?.requestImageFromGallery(requestCodeGalleryPhoto))
+    } else if (androidImageManager?.shouldShowPermissionRationale() == true) {
+      showImagePermissionRationale()
+    } else {
+      androidImageManager?.requestPermission(requestCodeGalleryPermissions)
+    }
+  }
+
+  fun onCameraClick() {
+    val newFileName = currentDate
+
+    if (androidImageManager?.isPermissionGranted() == true ||
+        androidImageManager?.isCameraPermissionsNeeded == false) {
+      state?.thumbFileName = newFileName
+      handleObservable(androidImageManager?.requestImageFromCamera(newFileName, requestCodeCameraPhoto))
+    } else if (androidImageManager?.shouldShowPermissionRationale() ?: false) {
+      showImagePermissionRationale()
+    } else {
+      androidImageManager?.requestPermission(requestCodeCameraPermissions)
+    }
+  }
+
+  override fun onSaveInstanceState(outState: Bundle?) {
+    state?.save(outState)
+    super.onSaveInstanceState(outState)
   }
 
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
-    presenter.onActivityResult(ActivityResult(requestCode, data))
+
+    state?.thumbFileName?.let {
+      androidImageManager?.handleOnActivityResult(ActivityResult(requestCode, data), it, 400, 400)
+    }
   }
 
-  override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-    super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-    presenter.onActivityResult(ActivityResult(requestCode, null))
+  /**
+   * Handle both [AndroidImageManager.requestImageFromCamera] and
+   * [AndroidImageManager.requestImageFromGallery] responses with the same function, it doesnt matter
+   * if it comes from gallery or camera, we need to set it to the view (or do something with the path).
+   */
+  fun handleObservable(observable: Observable<String>?) {
+    observable?.subscribeOn(rx.schedulers.Schedulers.io())
+        ?.observeOn(rx.android.schedulers.AndroidSchedulers.mainThread())
+        ?.subscribe({ decodedImagePath ->
+          resultImage.setImageBitmap(BitmapFactory.decodeFile(decodedImagePath))
+        }, {
+          manageError(it)
+        })
   }
 
-  override fun onSaveInstanceState(outState: Bundle?) {
-    super.onSaveInstanceState(outState)
-    presenterState?.save(outState) // Save the image name (since its dynamic and get at runtime)
+  fun manageError(throwable: Throwable?) {
+    Log.e("android-image-picker", "Error getting image", throwable)
   }
 
-  override fun showImagePermissionRationale(requestCodeCameraPermissions: Any) {
+  fun showImagePermissionRationale() {
     Toast.makeText(this, "We need the permissions because of this bla bla bla", Toast.LENGTH_LONG)
         .show()
-  }
-
-  override fun showImage(path: String) {
-    resultImage.setImageBitmap(BitmapFactory.decodeFile(path))
   }
 
 }

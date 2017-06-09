@@ -4,9 +4,9 @@ import android.os.Bundle
 
 
 /**
- * Handle restore/save of instance state
+ * Handle restore/save of instance state "easy"
  */
-class ReportState(bundle: Bundle?) {
+class State(bundle: Bundle?) {
   var thumbFileName = bundle?.getString("user.thumb.name")
   var userIsPickingImage = bundle?.getBoolean("user.thumb.picking") ?: false
 
