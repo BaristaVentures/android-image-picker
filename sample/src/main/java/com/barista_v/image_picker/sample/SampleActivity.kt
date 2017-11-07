@@ -10,8 +10,10 @@ import com.barista_v.image_picker.ActivityResult
 import com.barista_v.image_picker.AndroidImageManager
 import com.barista_v.image_picker.sample.utils.State
 import com.barista_v.image_picker.sample.utils.extensions.nowString
+import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_sample.*
-import rx.Observable
 
 /**
  * 1. Its important to save some variables on [AppCompatActivity.onRestoreInstanceState]
@@ -92,8 +94,8 @@ class SampleActivity : AppCompatActivity() {
    * if it comes from gallery or camera, we need to set it to the view (or do something with the path).
    */
   fun handleObservable(observable: Observable<String>?) {
-    observable?.subscribeOn(rx.schedulers.Schedulers.io())
-        ?.observeOn(rx.android.schedulers.AndroidSchedulers.mainThread())
+    observable?.subscribeOn(Schedulers.io())
+        ?.observeOn(AndroidSchedulers.mainThread())
         ?.subscribe({ decodedImagePath ->
           resultImage.setImageBitmap(BitmapFactory.decodeFile(decodedImagePath))
         }, {

@@ -24,6 +24,10 @@ android {
   }
 }
 
+repositories {
+  maven { url "https://maven.google.com" }
+}
+
 dependencies {
   compile deps.supportAppCompat
   compile deps.kotlinStdLib

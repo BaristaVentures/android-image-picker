@@ -12,9 +12,8 @@ import android.os.Environment
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import com.barista_v.image_picker.extensions.saveInFile
-import rx.Observable
-import rx.subjects.BehaviorSubject
-import rx.subjects.Subject
+import io.reactivex.Observable
+import io.reactivex.subjects.BehaviorSubject
 import java.io.File
 import java.lang.ref.WeakReference
 
@@ -33,7 +32,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
   private val isExternalStorageWritable: Boolean
     get() = Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()
 
-  var results: Subject<String, String> = BehaviorSubject.create<String>()
+  var results = BehaviorSubject.create<String>()
   var format = Bitmap.CompressFormat.JPEG
   var quality = 80
 
@@ -81,7 +80,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
       completeResults()
     }
 
-    return results.asObservable()
+    return results.hide()
   }
 
   //  @RequiresPermission(allOf = arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE))
@@ -96,7 +95,7 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
       results.onError(Throwable("External storage is not available at the moment."))
     }
 
-    return results.asObservable()
+    return results.hide()
   }
 
   fun isPermissionGranted(): Boolean = permissionOwner.isPermissionGranted(permissions)
@@ -144,7 +143,6 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
    * Complete and init the observer so it can handle more items.
    */
   private fun completeResults() {
-    results.onCompleted()
     results = BehaviorSubject.create<String>()
   }
 
