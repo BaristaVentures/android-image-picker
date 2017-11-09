@@ -18,8 +18,8 @@ class InternalImage(var path: String?, var orientation: Int = -1) {
   init {
     if (orientation == -1) {
       try {
-        orientation = ExifInterface(path).orientation
-      } catch(exception: Exception) {
+        orientation = path?.let { ExifInterface(it).orientation } ?: -1
+      } catch (exception: Exception) {
         Log.e("InternalImage", "Getting exit interface info", exception)
       }
     }
@@ -45,7 +45,7 @@ class InternalImage(var path: String?, var orientation: Int = -1) {
 
       try {
         resultBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-      } catch(e: Exception) {
+      } catch (e: Exception) {
         Log.e("InternalImage", "Error rotating bitmap", e)
       }
     }
