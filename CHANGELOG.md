@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## V 0.2.2
+- Update Kotlin 1.2
+- Update support library 27.0.1
+
 ## V 0.2.1
 - Update support library 27.0.0
 
