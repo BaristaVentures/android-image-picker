@@ -23,13 +23,13 @@ repositories {
 }
 
 dependencies {
-  compile deps.kotlinStdLib
-  compile deps.supportAppCompat
-  compile deps.supportExifInterface
+  compile libraries.kotlinStdLib
+  compile libraries.supportAppCompat
+  compile libraries.supportExifInterface
 
-  compile deps.rxJava
-  compile deps.rxAndroid
-  compile deps.rxKotlin
+  compile libraries.rxJava
+  compile libraries.rxAndroid
+  compile libraries.rxKotlin
 }
 
 tasks.withType(Javadoc) {

@@ -29,7 +29,7 @@ repositories {
 }
 
 dependencies {
-  compile deps.supportAppCompat
-  compile deps.kotlinStdLib
+  compile libraries.supportAppCompat
+  compile libraries.kotlinStdLib
   compile project(":lib")
 }
