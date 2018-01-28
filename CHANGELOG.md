@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## V 0.2.4
+- Update kotlin 1.2.21
+
 ## V 0.2.3
 - Update kotlin 1.2.10
 
