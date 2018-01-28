@@ -5,7 +5,7 @@ ext {
            buildTools: "26.0.2"]
 
   versions = [supportLib: "27.0.1",
-              kotlin    : "1.2.10",
+              kotlin    : "1.2.21",
               rxJava    : "2.1.6",
               rxBinding : "1.0.0"]
 
