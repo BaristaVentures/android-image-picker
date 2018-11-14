@@ -2,15 +2,15 @@ buildscript {
   apply from: "dependencies.gradle"
 
   repositories {
+    google()
     mavenCentral()
-    maven { url "https://maven.google.com" }
     jcenter() // gradle-versions-plugin
   }
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:2.3.3'
+    classpath 'com.android.tools.build:gradle:3.2.1'
 
-    classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
+    classpath 'com.github.ben-manes:gradle-versions-plugin:0.20.0'
 
     classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$versions.kotlin"
     classpath "org.jetbrains.kotlin:kotlin-android-extensions:$versions.kotlin"
@@ -19,6 +19,7 @@ buildscript {
 
 allprojects {
   repositories {
+    google()
     maven { url 'https://maven.fabric.io/public' } // twitter
     mavenCentral()
     jcenter() // gradle-versions-plugin

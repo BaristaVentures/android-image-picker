@@ -4,7 +4,6 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
   compileSdkVersion setup.targetSdk
-  buildToolsVersion setup.buildTools
 
   defaultConfig {
     applicationId "com.barista_v.image_picker.sample"
@@ -24,12 +23,11 @@ android {
   }
 }
 
-repositories {
-  maven { url "https://maven.google.com" }
-}
-
 dependencies {
-  compile libraries.supportAppCompat
-  compile libraries.kotlinStdLib
-  compile project(":lib")
+  implementation libraries.supportAppCompat
+  implementation libraries.kotlinStdLib
+  implementation libraries.rxAndroid
+  implementation libraries.rxJava
+
+  implementation project(":lib")
 }
