@@ -10,7 +10,6 @@ import com.barista_v.image_picker.ActivityResult
 import com.barista_v.image_picker.AndroidImageManager
 import com.barista_v.image_picker.sample.utils.State
 import com.barista_v.image_picker.sample.utils.extensions.nowString
-import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 import kotlinx.android.synthetic.main.activity_sample.*
@@ -20,15 +19,12 @@ import kotlinx.android.synthetic.main.activity_sample.*
  *
  */
 class SampleActivity : AppCompatActivity() {
-  val requestCodeCameraPermissions = 1
   val requestCodeGalleryPermissions = 2
   val requestCodeCameraPhoto = 3
   val requestCodeGalleryPhoto = 4
 
   var androidImageManager: AndroidImageManager? = null
-
-  var state: State? = null
-
+  var state = State(null)
   val currentDate: String get() = java.util.Calendar.getInstance().nowString()
 
   override fun onCreate(savedInstanceState: Bundle?) {
@@ -41,19 +37,14 @@ class SampleActivity : AppCompatActivity() {
     cameraButton.setOnClickListener { onCameraClick() }
     galleryButton.setOnClickListener { onGalleryClick() }
 
-    if (state?.userIsPickingImage == true) {
-      // If this activity was recreated we need to start
-      // observing the change again.
-      handleObservable(androidImageManager?.results)
-    }
+    waitForImagePath()
   }
 
   fun onGalleryClick() {
-    state?.thumbFileName = currentDate
+    state.thumbFileName = currentDate
 
-    if (androidImageManager?.isPermissionGranted() == true) {
-      state?.userIsPickingImage = true
-      handleObservable(androidImageManager?.requestImageFromGallery(requestCodeGalleryPhoto))
+    if (androidImageManager?.permissionsGranted() == true) {
+      androidImageManager?.requestImageFromGallery(requestCodeGalleryPhoto)
     } else if (androidImageManager?.shouldShowPermissionRationale() == true) {
       showImagePermissionRationale()
     } else {
@@ -64,26 +55,19 @@ class SampleActivity : AppCompatActivity() {
   fun onCameraClick() {
     val newFileName = currentDate
 
-    if (androidImageManager?.isPermissionGranted() == true ||
-        androidImageManager?.isCameraPermissionsNeeded == false) {
-      state?.thumbFileName = newFileName
-      handleObservable(androidImageManager?.requestImageFromCamera(newFileName, requestCodeCameraPhoto))
-    } else if (androidImageManager?.shouldShowPermissionRationale() ?: false) {
-      showImagePermissionRationale()
-    } else {
-      androidImageManager?.requestPermission(requestCodeCameraPermissions)
-    }
+    state.thumbFileName = newFileName
+    androidImageManager?.requestImageFromCamera(newFileName, requestCodeCameraPhoto)
   }
 
   override fun onSaveInstanceState(outState: Bundle?) {
-    state?.save(outState)
+    state.save(outState)
     super.onSaveInstanceState(outState)
   }
 
   override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
     super.onActivityResult(requestCode, resultCode, data)
 
-    state?.thumbFileName?.let {
+    state.thumbFileName?.let {
       androidImageManager?.handleOnActivityResult(ActivityResult(requestCode, data), it, 400, 400)
     }
   }
@@ -93,8 +77,8 @@ class SampleActivity : AppCompatActivity() {
    * [AndroidImageManager.requestImageFromGallery] responses with the same function, it doesnt matter
    * if it comes from gallery or camera, we need to set it to the view (or do something with the path).
    */
-  fun handleObservable(observable: Observable<String>?) {
-    observable?.subscribeOn(Schedulers.io())
+  private fun waitForImagePath() {
+    androidImageManager?.results?.subscribeOn(Schedulers.io())
         ?.observeOn(AndroidSchedulers.mainThread())
         ?.subscribe({ decodedImagePath ->
           resultImage.setImageBitmap(BitmapFactory.decodeFile(decodedImagePath))
