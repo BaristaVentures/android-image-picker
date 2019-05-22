@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## V 0.2.7
+- Update kotlin 1.3.31
+- Android gradle plugin 3.4.1
+
 ## V 0.2.5
 - Update kotlin 1.3.0
 - Android gradle plugin 3.x
