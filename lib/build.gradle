@@ -4,7 +4,6 @@ apply plugin: 'com.github.ben-manes.versions'
 
 android {
   compileSdkVersion setup.targetSdk
-  buildToolsVersion setup.buildTools
 
   defaultConfig {
     minSdkVersion setup.minSdk
@@ -18,18 +17,13 @@ android {
   }
 }
 
-repositories {
-  maven { url "https://maven.google.com" }
-}
-
 dependencies {
-  compile libraries.kotlinStdLib
-  compile libraries.supportAppCompat
-  compile libraries.supportExifInterface
+  implementation libraries.kotlinStdLib
+  implementation libraries.supportAppCompat
+  implementation libraries.supportExifInterface
 
-  compile libraries.rxJava
-  compile libraries.rxAndroid
-  compile libraries.rxKotlin
+  implementation libraries.rxJava
+  implementation libraries.rxKotlin
 }
 
 tasks.withType(Javadoc) {

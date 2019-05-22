@@ -7,12 +7,9 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
-import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
 import android.support.v4.content.FileProvider
 import com.barista_v.image_picker.extensions.saveInFile
-import io.reactivex.Observable
 import io.reactivex.subjects.BehaviorSubject
 import java.io.File
 import java.lang.ref.WeakReference
@@ -22,104 +19,76 @@ import java.lang.ref.WeakReference
  *
  * You need to call [handleOnActivityResult] from the activity.
  */
-open class AndroidImageManager(activity: Activity, val applicationPackage: String) {
+open class AndroidImageManager(activity: Activity, private val applicationPackage: String) {
   private var weakActivity = WeakReference(activity)
   private val permissionOwner = PermissionOwner(activity)
-  private val storageDir: File? by lazy {
-    activity.getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-  }
 
-  private val isExternalStorageWritable: Boolean
-    get() = Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()
+  private val storageDir: File? by lazy {
+    weakActivity.get()?.cacheDir
+
+    /*if (Environment.MEDIA_MOUNTED == Environment.getExternalStorageState()) {
+      Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
+    }else {
+      activity.filesDir
+    }*/
+  }
 
   var results = BehaviorSubject.create<String>()
   var format = Bitmap.CompressFormat.JPEG
   var quality = 80
 
-  /**
-   * From SDK 18 (kitkat) you dont need to ask user permissions for
-   * #android.Manifest.permission.WRITE_EXTERNAL_STORAGE
-   */
-  val isCameraPermissionsNeeded: Boolean
-    get() = Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT
-
   /**q
-   * Added camera permission because it creates a conflict if the app have camera permission
-   * even if its in other place of the app.
-   *
-   * "Note: if you app targets M and above and declares as using the CAMERA permission
-   * which is not granted, then try to use this action will result in a SecurityException."
+   * Permissions needed for [requestImageFromGallery]
    */
-  val permissions = arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE)
+  val permissions = arrayOf(READ_EXTERNAL_STORAGE)
 
   /**
-   * Use #shouldAskForCameraPermissions to check if this method really needs a permission or not
-   *
-   * @return Observable with the result file path
+   * Subscribe to [results] to get the path of the processed image.
    */
   //  @RequiresPermission(WRITE_EXTERNAL_STORAGE)
-  open fun requestImageFromCamera(resultImageName: String, requestCode: Int): Observable<String> {
-    if (isExternalStorageWritable) {
-      weakActivity.get()?.let {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+  open fun requestImageFromCamera(resultImageName: String, requestCode: Int) {
+    weakActivity.get()?.let {
+      val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
 
-        if (takePictureIntent.resolveActivity(it.packageManager) != null) {
-          val imageUri = getCameraImageUri(it, resultImageName)
+      if (takePictureIntent.resolveActivity(it.packageManager) != null) {
+        val imageUri = getCameraImageUri(it, resultImageName)
 
-          it.grantUriPermission(applicationPackage, imageUri,
-              Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        it.grantUriPermission(applicationPackage, imageUri,
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION or Intent.FLAG_GRANT_READ_URI_PERMISSION)
 
-          takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
-          takePictureIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+        takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri)
+        takePictureIntent.flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
 
-          it.startActivityForResult(takePictureIntent, requestCode)
-        }
+        it.startActivityForResult(takePictureIntent, requestCode)
       }
-    } else {
-      results.onError(Throwable("External storage is not available at the moment."))
-      completeResults()
     }
-
-    return results.hide()
   }
 
   //  @RequiresPermission(allOf = arrayOf(WRITE_EXTERNAL_STORAGE, READ_EXTERNAL_STORAGE))
   /**
-   * @return Observable with the result file path
+   * Check [permissions] to know which permissions are needed for this.
+   * Subscribe to [results] to get the path of the processed image.
    */
-  fun requestImageFromGallery(requestCode: Int): Observable<String> {
-    if (isExternalStorageWritable) {
-      val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-      weakActivity.get()?.startActivityForResult(intent, requestCode)
-    } else {
-      results.onError(Throwable("External storage is not available at the moment."))
-    }
-
-    return results.hide()
+  fun requestImageFromGallery(requestCode: Int) {
+    val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+    weakActivity.get()?.startActivityForResult(intent, requestCode)
   }
 
-  fun isPermissionGranted(): Boolean = permissionOwner.isPermissionGranted(permissions)
+  fun permissionsGranted(): Boolean = permissionOwner.isPermissionGranted(permissions)
 
   fun shouldShowPermissionRationale(): Boolean = permissionOwner.shouldShowPermissionRationale(permissions)
 
-  fun requestPermission(requestCodeGalleryPermissions: Int) =
-      permissionOwner.requestPermission(permissions, requestCodeGalleryPermissions)
+  fun requestPermission(code: Int) = permissionOwner.requestPermission(permissions, code)
 
   open fun handleOnActivityResult(result: ActivityResult, imageName: String, width: Int, height: Int) {
-    if (!isExternalStorageWritable) {
-      results.onError(Throwable("External storage is not available at the moment."))
-      completeResults()
-      return
-    }
-
     weakActivity.get()?.let { activity ->
       try {
         val imageUri = getCameraImageUri(activity, imageName)
         val sourceImage = readImageFileFromGallery(result.data) ?: readImageFileFromCamera(imageUri)
 
         val destinationFile = createInternalFile("$imageName.${format.name}")
-
         val bitmap = sourceImage.resizeRotatedBitmap(width, height)
+
         bitmap?.saveInFile(destinationFile, format, quality)?.let {
           results.onNext(it.absolutePath)
           completeResults()
@@ -191,10 +160,12 @@ open class AndroidImageManager(activity: Activity, val applicationPackage: Strin
     return InternalImage(createCameraFile(imageUri.lastPathSegment).absolutePath)
   }
 
-  private fun createCameraFile(fullFileName: String) = File(storageDir, fullFileName)
+  private fun createCameraFile(fullFileName: String): File {
+    return File(storageDir, fullFileName)
+  }
 
-  private fun createInternalFile(fileName: String) = File(storageDir, fileName).apply {
-    mkdirs()
+  private fun createInternalFile(fileName: String): File {
+    return File(storageDir, fileName)
   }
 }
 
