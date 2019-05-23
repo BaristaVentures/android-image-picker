@@ -27,7 +27,7 @@ jobs:
             bash scripts/install-dependencies.sh
       - run:
           name: Build
-          command: ./gradlew assemble -PdisablePreDex --stacktrace --no-daemon
+          command: ./gradlew assemble -PdisablePreDex --stacktrace --no-daemon -x androidJavadocs
   deploy:
     docker:
       - image: circleci/android:api-28-alpha
