@@ -9,13 +9,10 @@
 
 set +x // Hide all output
 
+PROPERTIES_FILE_PATH=gradle.properties
 ENV_VARIABLES=$(printenv | tr ' ' '\n')
 
-for PROPERTIES_FILE in gradle.properties lib/bintray.properties
-do
-  # Decode variables named like 'sign_BARISTA_DOT_password=123' to 'sign.password=123'.
-  # Some ci servers like circle-ci don't support env variable names with a '.'
-  echo ${ENV_VARIABLES//_BARISTA_DOT_/.} >> $PROPERTIES_FILE
-done
+echo "\n" >> ${PROPERTIES_FILE_PATH}
+printenv | tr ' ' '\n' >> ${PROPERTIES_FILE_PATH}
 
 set -x
